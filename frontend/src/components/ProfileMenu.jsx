@@ -20,13 +20,13 @@ export default function ProfileMenu() {
         onClick={() => setOpen(!open)}
         className="w-10 h-10 rounded-full bg-pink-100 text-pink-600 font-semibold"
       >
-        {user.name[0]}
+        {user.user_metadata?.name?.[0] ?? "?"}
       </button>
 
       {open && (
         <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#1a0f14] border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg p-4 text-gray-900 dark:text-gray-100 transition-colors">
           <div className="pb-3 border-b">
-            <p className="font-semibold">{user.name}</p>
+            <p className="font-semibold">{user.user_metadata?.name ?? user.email}</p>
             <p className="text-gray-500 text-sm">{user.email}</p>
           </div>
 
