@@ -9,13 +9,11 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-transparent">
-      <div className="min-h-screen bg-gray-50">
-        {!hideNavbar && <Navbar />}
+      {!hideNavbar && <Navbar />}
 
-        <main className="max-w-6xl mx-auto p-6">
-          <Outlet />
-        </main>
-      </div>
+      <main className="max-w-6xl mx-auto p-6">
+        <Outlet />
+      </main>
     </div>
   );
 }

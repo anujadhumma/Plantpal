@@ -16,4 +16,8 @@ export const sensorAPI = {
   logs: () => API.get("/sensor/logs"),
 };
 
+export const chatAPI = {
+  sendMessage: (message) => API.post("/chat", { message }),
+};
+
 export default API;
