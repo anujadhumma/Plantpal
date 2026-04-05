@@ -35,29 +35,30 @@ export default function Dashboard() {
   }, []);
 
   return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Dashboard 🌱</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+        Dashboard 🌱
+      </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MetricCard
-            icon={Thermometer}
-            label="Temperature"
-            value={data.temperature}
-            unit="°F"
-          />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <MetricCard
+          icon={Thermometer}
+          label="Temperature"
+          value={data.temperature}
+          unit="°F"
+        />
 
-          <MetricCard
-            icon={Droplets}
-            label="Moisture"
-            value={data.moisture}
-            unit="%"
-          />
+        <MetricCard
+          icon={Droplets}
+          label="Moisture"
+          value={data.moisture}
+          unit="%"
+        />
 
-          <MetricCard icon={Sun} label="Light" value={data.light} unit="%" />
-        </div>
-
-        <MetricsChart data={history} />
+        <MetricCard icon={Sun} label="Light" value={data.light} unit="%" />
       </div>
-    
+
+      <MetricsChart data={history} />
+    </div>
   );
 }
