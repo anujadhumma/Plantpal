@@ -19,6 +19,8 @@ export default function App() {
     <div className="min-h-screen bg-pink-50 dark:bg-[#12070c] text-gray-900 dark:text-gray-100 transition-colors">
       <BrowserRouter>
         <Routes>
+           <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
           <Route
             element={
               <ProtectedRoute>
@@ -26,8 +28,7 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+           
             <Route path="/" element={<Dashboard />} />
             <Route path="/plants" element={<Plants />} />
             <Route path="/sensor-data" element={<Sensor />} />
