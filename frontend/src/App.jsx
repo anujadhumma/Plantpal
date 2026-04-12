@@ -16,7 +16,7 @@ function Sensor() {
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-pink-50 dark:bg-[#12070c] text-gray-900 dark:text-gray-100 transition-colors">
+    <div className="min-h-screen bg-[#d4edda] dark:bg-[#0d1f12] text-gray-900 dark:text-gray-100 transition-colors">
       <BrowserRouter>
         <Routes>
            <Route path="/login" element={<Login />} />
