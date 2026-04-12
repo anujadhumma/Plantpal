@@ -5,6 +5,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AIChatbox from "./components/AIChatbox";
+import PlantProfile from "./pages/PlantProfile";
 
 function Plants() {
   return <h1>Plants 🌿</h1>;
@@ -30,8 +31,8 @@ export default function App() {
           >
            
             <Route path="/" element={<Dashboard />} />
-            <Route path="/plants" element={<Plants />} />
             <Route path="/sensor-data" element={<Sensor />} />
+            <Route path="/plant-profile" element={<PlantProfile />} />
           </Route>
         </Routes>
 
