@@ -19,20 +19,23 @@ export default function ProfileMenu() {
   const avatarUrl = user.user_metadata?.avatar_url ?? null;
 
   return (
-    <div className="relative flex items-center">
-      {/* Avatar button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-400 shadow-md hover:scale-105 transition-transform"
-      >
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold text-lg">
-            {name?.[0]?.toUpperCase() ?? "?"}
-          </div>
-        )}
-      </button>
+    <div className="relative flex items-center gap-2">
+  {/* Name next to avatar */}
+  <span className="text-lg font-semibold text-green-800 dark:text-green-300 hidden sm:block">
+    {user.user_metadata?.username || user.user_metadata?.name || ""}
+  </span>
+
+  {/* Avatar button */}
+  <button
+    onClick={() => setOpen(!open)}
+    className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-400 shadow-md hover:scale-105 transition-transform">
+    {avatarUrl ? (
+      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />): 
+      (<div className="w-full h-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold text-lg">
+        {name?.[0]?.toUpperCase() ?? "?"}
+      </div>
+    )}
+  </button>
 
       {/* Dropdown — opens LEFT so it never goes off screen */}
       {open && (
