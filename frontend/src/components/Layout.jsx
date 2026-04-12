@@ -3,17 +3,16 @@ import Navbar from "./Navbar";
 
 export default function Layout() {
   const location = useLocation();
-
-  const hideNavbar =
-    location.pathname === "/login" || location.pathname === "/signup";
+  const hideNavbar = location.pathname === "/login" || location.pathname === "/signup";
 
   return (
     <div className="min-h-screen bg-transparent">
-      {!hideNavbar && <Navbar />}
-
-      <main className="max-w-6xl mx-auto p-6">
-        <Outlet />
-      </main>
+      <div className="min-h-screen bg-[#d4edda] dark:bg-[#0d1f12]">
+        {!hideNavbar && <Navbar />}
+        <main className="max-w-6xl mx-auto p-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
