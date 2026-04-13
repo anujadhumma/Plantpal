@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
+require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.BACKEND_PORT || 3000;
 
 // Middleware setup
 app.use(cors());
@@ -13,11 +13,47 @@ app.use(express.json());
 app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message;
+    const chatMode = req.body.chatMode || "general";
+    const selectedPlant = req.body.selectedPlant || null;
+    const plantReadings = Array.isArray(req.body.plantReadings) ? req.body.plantReadings : [];
 
     // Validate that a message was provided
     if (!userMessage) {
       return res.status(400).json({ error: "Message is required." });
     }
+
+    const messages = [
+      {
+        role: "system",
+        content:
+          chatMode === "plant" && selectedPlant
+            ? [
+                "You are a helpful plant assistant.",
+                "The user is asking about one specific plant from their own account.",
+                "Use the provided plant profile and sensor history when answering.",
+                "Prioritize the most recent readings, but use the older readings to notice trends.",
+                "If the data is missing or stale, say that clearly.",
+                "Give short, friendly, practical plant care advice.",
+              ].join(" ")
+            : "You are a helpful plant assistant. Give short, friendly plant care advice.",
+      },
+    ];
+
+    if (chatMode === "plant" && selectedPlant) {
+      messages.push({
+        role: "system",
+        content: `Selected plant profile: ${JSON.stringify(selectedPlant)}`,
+      });
+      messages.push({
+        role: "system",
+        content: `Selected plant sensor history: ${JSON.stringify(plantReadings)}`,
+      });
+    }
+
+    messages.push({
+      role: "user",
+      content: userMessage,
+    });
 
     // Send request to OpenRouter API
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -28,19 +64,7 @@ app.post("/chat", async (req, res) => {
       },
       body: JSON.stringify({
         model: "openai/gpt-4o-mini",
-        messages: [
-          {
-            // System prompt sets the AI behavior
-            role: "system",
-            content:
-              "You are a helpful plant assistant. Give short, friendly plant care advice.",
-          },
-          {
-            // User message from the frontend
-            role: "user",
-            content: userMessage,
-          },
-        ],
+        messages,
       }),
     });
 

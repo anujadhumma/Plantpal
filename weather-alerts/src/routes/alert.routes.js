@@ -28,14 +28,16 @@ router.get("/user/:userId", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-// POST /api/alerts/report — manually trigger daily report (for testing)
+
+// POST /api/alerts/report - manually trigger a status update (for testing)
 router.post("/report", async (req, res) => {
   try {
     const { sendDailyReports } = require("../services/report.service");
     await sendDailyReports();
-    res.json({ success: true, message: "Daily reports sent!" });
+    res.json({ success: true, message: "Status updates sent!" });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 module.exports = router;
