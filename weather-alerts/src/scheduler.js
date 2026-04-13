@@ -1,11 +1,11 @@
-// Scheduler - runs plant checks at 6am and 6pm daily
+// Scheduler - runs plant checks every 5 minutes
 const cron = require("node-cron");
 const { sendDailyReports } = require("./services/report.service");
 
-// Run at 6:00 AM and 6:00 PM every day
-cron.schedule("0 6,18 * * *", async () => {
+// Run every 5 minutes
+cron.schedule("*/5 * * * *", async () => {
   console.log(`Running scheduled plant check at ${new Date().toLocaleTimeString()}`);
   await sendDailyReports();
 });
 
-console.log("Scheduler started — checks run at 6am and 6pm daily");
+console.log("Scheduler started - checks run every 5 minutes");

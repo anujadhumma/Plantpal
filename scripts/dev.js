@@ -59,9 +59,19 @@ function startBackend() {
   );
 }
 
+function startAlerts() {
+  return startProcess(
+    "weather-alerts",
+    nodeCommand,
+    ["app.js"],
+    path.join(rootDir, "weather-alerts")
+  );
+}
+
 const children = [
   startFrontend(),
   startBackend(),
+  startAlerts(),
 ];
 
 let shuttingDown = false;

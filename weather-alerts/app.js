@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 const express = require("express");
 const app = express();
 
@@ -17,5 +17,5 @@ app.get("/", (req, res) => res.json({ status: "PlantPal backend running" }));
 // Start scheduler
 require("./src/scheduler");
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.WEATHER_ALERTS_PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
