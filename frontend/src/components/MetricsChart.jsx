@@ -68,7 +68,7 @@ export default function MetricsChart({ data, title, lines = [] }) {
         <LineChart data={chartData} margin={{ left: 0, right: 20, top: 5, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" />
 
-          {/* X axis spans exactly the last 24 hrs */}
+          {/* X axis spans the last 24 hrs */}
           <XAxis
             dataKey="timeMs"
             type="number"

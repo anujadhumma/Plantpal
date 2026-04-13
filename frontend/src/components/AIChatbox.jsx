@@ -21,20 +21,13 @@ export default function AIChatbox() {
   const location = useLocation();
   const { user } = useAuth();
 
-  if (location.pathname === "/login" || location.pathname === "/signup") {
-    return null;
-  }
-
   useEffect(() => {
-    if (!open || chatMode !== "plant" || !user) {
-      return;
-    }
+    if (!open || chatMode !== "plant" || !user) return;
 
     let cancelled = false;
 
     const fetchPlants = async () => {
       setPlantsLoading(true);
-
       try {
         const { data, error } = await supabase
           .from("Plant")
@@ -42,13 +35,8 @@ export default function AIChatbox() {
           .eq("userId", user.id)
           .order("id", { ascending: true });
 
-        if (error) {
-          throw error;
-        }
-
-        if (cancelled) {
-          return;
-        }
+        if (error) throw error;
+        if (cancelled) return;
 
         setPlants(data || []);
 
@@ -63,7 +51,6 @@ export default function AIChatbox() {
         }
       } catch (error) {
         console.error("Plant load error:", error);
-
         if (!cancelled) {
           setMessages((prev) => [
             ...prev,
@@ -74,18 +61,17 @@ export default function AIChatbox() {
           ]);
         }
       } finally {
-        if (!cancelled) {
-          setPlantsLoading(false);
-        }
+        if (!cancelled) setPlantsLoading(false);
       }
     };
 
     fetchPlants();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [open, chatMode, user]);
+
+  if (location.pathname === "/login" || location.pathname === "/signup") {
+    return null;
+  }
 
   const resetChat = () => {
     setMessages([{ role: "ai", text: INITIAL_MESSAGE }]);
@@ -102,7 +88,6 @@ export default function AIChatbox() {
     setChatMode(mode);
     setSelectedPlant(null);
     setPlantReadings([]);
-
     setMessages((prev) => [
       ...prev,
       {
@@ -147,9 +132,7 @@ export default function AIChatbox() {
         .eq("device_id", plant.device_id)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       setPlantReadings(data || []);
 
@@ -178,9 +161,7 @@ export default function AIChatbox() {
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || loading) {
-      return;
-    }
+    if (!input.trim() || loading) return;
 
     if (chatMode === "plant" && !selectedPlant) {
       setMessages((prev) => [
@@ -194,9 +175,7 @@ export default function AIChatbox() {
     }
 
     const currentInput = input;
-    const userMessage = { role: "user", text: currentInput };
-
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, { role: "user", text: currentInput }]);
     setInput("");
     setLoading(true);
 
@@ -208,7 +187,6 @@ export default function AIChatbox() {
         plantReadings,
       });
       const aiReply = response.data.reply || "I got your message, but no reply came back.";
-
       setMessages((prev) => [...prev, { role: "ai", text: aiReply }]);
     } catch (error) {
       console.error("Chat error:", error);
@@ -225,9 +203,7 @@ export default function AIChatbox() {
     <>
       <button
         onClick={() => {
-          if (open) {
-            resetChat();
-          }
+          if (open) resetChat();
           setOpen((prev) => !prev);
         }}
         className="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg z-50 transition-all hover:scale-105"
@@ -270,13 +246,13 @@ export default function AIChatbox() {
               <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   onClick={() => chooseMode("general")}
-                  className="rounded-full bg-white px-3 py-2 text-sm text-green-700 shadow-sm border border-green-200"
+                  className="rounded-full bg-white dark:bg-green-900/30 px-3 py-2 text-sm text-green-700 dark:text-green-300 shadow-sm border border-green-200 dark:border-green-700"
                 >
                   General question
                 </button>
                 <button
                   onClick={() => chooseMode("plant")}
-                  className="rounded-full bg-white px-3 py-2 text-sm text-green-700 shadow-sm border border-green-200"
+                  className="rounded-full bg-white dark:bg-green-900/30 px-3 py-2 text-sm text-green-700 dark:text-green-300 shadow-sm border border-green-200 dark:border-green-700"
                 >
                   Help with a plant
                 </button>
@@ -290,14 +266,13 @@ export default function AIChatbox() {
                     Loading your plants...
                   </div>
                 )}
-
                 {!plantsLoading && plants.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {plants.map((plant) => (
                       <button
                         key={plant.id}
                         onClick={() => choosePlant(plant)}
-                        className="rounded-full bg-white px-3 py-2 text-sm text-green-700 shadow-sm border border-green-200"
+                        className="rounded-full bg-white dark:bg-green-900/30 px-3 py-2 text-sm text-green-700 dark:text-green-300 shadow-sm border border-green-200 dark:border-green-700"
                       >
                         {plant.plantName}
                       </button>
