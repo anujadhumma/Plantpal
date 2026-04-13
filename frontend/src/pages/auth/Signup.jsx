@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import bgImage from "../../assets/plant bg.jpeg";
+import bgImage from "../../assets/Picture-bg-plants.jpg";
 
 export default function Signup() {
-  const [form, setForm] = useState({ name: "", email: "", password: "", username: "" });
+  const [form, setForm] = useState({ 
+    name: "", 
+    email: "", 
+    password: "", 
+    username: "",
+    location: "" 
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -14,11 +20,15 @@ export default function Signup() {
     setError("");
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
-        data: { name: form.name, username: form.username },
+        data: { 
+          name: form.name, 
+          username: form.username,
+          location: form.location 
+        },
       },
     });
 
@@ -26,6 +36,17 @@ export default function Signup() {
       setError(error.message);
       setLoading(false);
       return;
+    }
+
+    // Save location to profiles table
+    if (data?.user) {
+      await supabase
+        .from("profiles")
+        .update({ 
+          location: form.location,
+          username: form.username 
+        })
+        .eq("id", data.user.id);
     }
 
     navigate("/");
@@ -39,7 +60,6 @@ export default function Signup() {
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
 
       <div className="relative z-10 w-[420px]">
-        {/* Logo area */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 border-2 border-green-300 shadow-lg mb-3">
             <span className="text-3xl">🌿</span>
@@ -55,9 +75,7 @@ export default function Signup() {
           <h2 className="text-xl font-semibold text-center text-green-900">Create Account 🌸</h2>
 
           {error && (
-            <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-xl">
-              {error}
-            </p>
+            <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-xl">{error}</p>
           )}
 
           <div>
@@ -97,6 +115,15 @@ export default function Signup() {
             />
           </div>
 
+          <div>
+            <label className="text-sm text-gray-600 font-medium">Location</label>
+            <input
+              className="w-full border border-green-200 rounded-xl p-3 mt-1 bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-300"
+              placeholder="City, Country (e.g. Toledo, US)"
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+            />
+          </div>
+
           <button
             disabled={loading}
             className="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl font-semibold transition disabled:opacity-60 shadow-md"
@@ -106,9 +133,7 @@ export default function Signup() {
 
           <p className="text-sm text-center text-gray-600">
             Already have an account?{" "}
-            <a href="/login" className="text-green-600 font-semibold hover:underline">
-              Login
-            </a>
+            <a href="/login" className="text-green-600 font-semibold hover:underline">Login</a>
           </p>
         </form>
       </div>

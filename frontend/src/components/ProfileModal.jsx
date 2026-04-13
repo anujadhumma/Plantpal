@@ -8,6 +8,7 @@ export default function ProfileModal({ user, onClose }) {
   const [name, setName] = useState(user.user_metadata?.name ?? "");
   const [email, setEmail] = useState(user.email ?? "");
   const [username, setUsername] = useState(user.user_metadata?.username ?? "");
+  const [location, setLocation] = useState(user.user_metadata?.location ?? "");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [msg, setMsg] = useState("");
@@ -60,7 +61,7 @@ export default function ProfileModal({ user, onClose }) {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({
       email,
-      data: { name, username },
+      data: { name, username, location },
     });
 
     if (error) {
@@ -68,7 +69,7 @@ export default function ProfileModal({ user, onClose }) {
     } else {
       await supabase
         .from("profiles")
-        .update({ name, email, username })
+        .update({ name, email, username, location })
         .eq("id", user.id);
       showMsg("Profile updated successfully!", "success");
     }
@@ -175,6 +176,16 @@ export default function ProfileModal({ user, onClose }) {
               placeholder="Enter a username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-green-700 dark:text-green-400">Location</label>
+            <input
+              className="w-full border border-green-200 dark:border-green-800 rounded-lg p-2 mt-1 bg-white dark:bg-green-900/20 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-300"
+              placeholder="City, Country (e.g. Toledo, US)"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
             />
           </div>
 
