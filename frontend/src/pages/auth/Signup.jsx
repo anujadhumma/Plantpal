@@ -1,31 +1,32 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import bgImage from "../../assets/Picture-bg-plants.jpg";
+import bgImage from "../../assets/plant bg.jpeg";
 
 export default function Signup() {
   const [form, setForm] = useState({ 
-    name: "", 
-    email: "", 
+    name:     "", 
+    email:    "", 
     password: "", 
     username: "",
     location: "" 
   });
-  const [error, setError] = useState("");
+  const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const navigate              = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
+    // Create the user in Supabase auth with metadata
     const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
         data: { 
-          name: form.name, 
+          name:     form.name, 
           username: form.username,
           location: form.location 
         },
@@ -38,7 +39,7 @@ export default function Signup() {
       return;
     }
 
-    // Save location to profiles table
+    // Save username and location to the profiles table
     if (data?.user) {
       await supabase
         .from("profiles")
@@ -49,6 +50,7 @@ export default function Signup() {
         .eq("id", data.user.id);
     }
 
+    // Redirect to home after successful signup
     navigate("/");
   };
 
@@ -57,9 +59,11 @@ export default function Signup() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm"></div>
 
       <div className="relative z-10 w-[420px]">
+
+        {/* Logo and app name */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 border-2 border-green-300 shadow-lg mb-3">
             <span className="text-3xl">🌿</span>
@@ -74,6 +78,7 @@ export default function Signup() {
         >
           <h2 className="text-xl font-semibold text-center text-green-900">Create Account 🌸</h2>
 
+          {/* Error message shown on failed signup */}
           {error && (
             <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-xl">{error}</p>
           )}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 
+// Small card to display a single sensor metric value
 const MetricCard = ({ icon, label, value, unit }) => (
   <div className="flex flex-col gap-1 bg-[#f0faf0] rounded-xl px-4 py-3 flex-1 min-w-[75px]">
     <span className="text-lg">{icon}</span>
@@ -13,9 +14,11 @@ const MetricCard = ({ icon, label, value, unit }) => (
   </div>
 );
 
+// Card component that displays a single plant and its latest sensor reading
 const PlantCard = ({ plant, reading, onDelete }) => {
   const [deleting, setDeleting] = useState(false);
 
+  // Color mapping for each plant type badge
   const typeColors = {
     General:   "bg-green-100  text-green-700",
     Succulent: "bg-lime-100   text-lime-700",
@@ -37,7 +40,8 @@ const PlantCard = ({ plant, reading, onDelete }) => {
 
   return (
     <div className="bg-white border border-green-100 rounded-3xl p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
-      {/* Header */}
+
+      {/* Plant name, type badge and delete button */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="bg-green-100 rounded-2xl p-2.5">
@@ -59,7 +63,7 @@ const PlantCard = ({ plant, reading, onDelete }) => {
         </button>
       </div>
 
-      {/* Sensor readings */}
+      {/* Show sensor readings or a waiting message */}
       {reading ? (
         <>
           <p className="text-[10px] font-mono text-green-400 mb-3">
@@ -84,8 +88,9 @@ const PlantCard = ({ plant, reading, onDelete }) => {
   );
 };
 
+// Modal form for adding a new plant
 const AddPlantModal = ({ onClose, onAdd }) => {
-  const [form, setForm] = useState({ plantName: "", plantType: "General", device_id: "" });
+  const [form, setForm]       = useState({ plantName: "", plantType: "General", device_id: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
 
@@ -100,13 +105,14 @@ const AddPlantModal = ({ onClose, onAdd }) => {
       const currentUserId = session?.user?.id;
       if (!currentUserId) { setError("You must be logged in."); return; }
 
+      // Insert the new plant into the database
       const { data, error: sbError } = await supabase
         .from("Plant")
         .insert([{
           plantName: form.plantName.trim(),
           plantType: form.plantType,
           device_id: form.device_id.trim() || null,
-          userId: currentUserId,
+          userId:    currentUserId,
         }])
         .select();
 
@@ -123,6 +129,7 @@ const AddPlantModal = ({ onClose, onAdd }) => {
   const inputCls = "w-full bg-[#f0faf0] border border-green-200 rounded-2xl px-4 py-2.5 text-sm text-green-900 placeholder-green-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition";
 
   return (
+    // Click outside the modal to close it
     <div
       className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -152,15 +159,14 @@ const AddPlantModal = ({ onClose, onAdd }) => {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1.5 block">
-              Device ID
-            </label>
+            <label className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1.5 block">Device ID</label>
             <input className={inputCls} placeholder="e.g. esp32_2" value={form.device_id} onChange={set("device_id")} />
             <p className="text-[11px] text-green-400 mt-1.5 ml-1">
               Links this plant to its ESP32 sensor readings
             </p>
           </div>
 
+          {/* Error message shown if submission fails */}
           {error && (
             <p className="text-sm text-red-500 bg-red-50 rounded-2xl px-4 py-2.5">{error}</p>
           )}
@@ -178,6 +184,7 @@ const AddPlantModal = ({ onClose, onAdd }) => {
   );
 };
 
+// Main plant profile page
 const PlantProfile = () => {
   const { user } = useAuth();
   const [plants, setPlants]       = useState([]);
@@ -188,6 +195,7 @@ const PlantProfile = () => {
 
   useEffect(() => { fetchAll(); }, []);
 
+  // Fetch all plants and their latest sensor readings
   const fetchAll = async () => {
     setLoading(true);
     setError("");
@@ -199,6 +207,7 @@ const PlantProfile = () => {
         .order("id", { ascending: true });
       if (plantErr) throw plantErr;
 
+      // Get unique device IDs to fetch sensor readings
       const deviceIds = plantData.map(p => p.device_id).filter(Boolean);
       let readingMap = {};
 
@@ -209,6 +218,8 @@ const PlantProfile = () => {
           .in("device_id", deviceIds)
           .order("created_at", { ascending: false });
         if (sensorErr) throw sensorErr;
+
+        // Map the most recent reading per device
         sensorData.forEach(r => {
           if (!readingMap[r.device_id]) readingMap[r.device_id] = r;
         });
@@ -223,8 +234,10 @@ const PlantProfile = () => {
     }
   };
 
+  // Add new plant to local state after successful insert
   const handleAdd = (plant) => setPlants(prev => [...prev, plant]);
 
+  // Delete plant from database and remove from local state
   const handleDelete = async (id) => {
     try {
       const { error } = await supabase.from("Plant").delete().eq("id", id);
@@ -239,7 +252,7 @@ const PlantProfile = () => {
     <div className="min-h-screen bg-[#e8f5e2] px-6 py-10 transition-colors">
       <div className="max-w-5xl mx-auto">
 
-        {/* Header */}
+        {/* Page header with plant count and add button */}
         <div className="flex justify-between items-end mb-10">
           <div>
             <p className="text-xs font-semibold tracking-widest text-green-500 uppercase mb-1">PlantPal</p>
@@ -252,25 +265,25 @@ const PlantProfile = () => {
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl px-5 py-2.5 text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
           >
-            <span className="text-lg">＋</span> Add Plant
+            <span className="text-lg">+</span> Add Plant
           </button>
         </div>
 
-        {/* Error */}
+        {/* Error message if data fetch fails */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-5 py-4 mb-6 text-sm">
             {error}
           </div>
         )}
 
-        {/* Loading */}
+        {/* Loading spinner while fetching data */}
         {loading && (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-green-200 border-t-green-500 rounded-full animate-spin" />
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty state when user has no plants */}
         {!loading && plants.length === 0 && !error && (
           <div className="text-center py-24">
             <div className="bg-white rounded-3xl p-12 shadow-sm border border-green-100 inline-block">
@@ -287,7 +300,7 @@ const PlantProfile = () => {
           </div>
         )}
 
-        {/* Plant grid */}
+        {/* Grid of plant cards */}
         {!loading && plants.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {plants.map((plant) => (
@@ -302,6 +315,7 @@ const PlantProfile = () => {
         )}
       </div>
 
+      {/* Add plant modal */}
       {showModal && <AddPlantModal onClose={() => setShowModal(false)} onAdd={handleAdd} />}
     </div>
   );

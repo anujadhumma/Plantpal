@@ -14,16 +14,20 @@ export default function SettingsModal({ onClose }) {
         <h2 className="text-2xl font-semibold mb-6 text-green-900 dark:text-white">Settings</h2>
 
         <div className="space-y-6">
+          {/* Appearance section with dark mode toggle */}
           <div className="bg-green-50 dark:bg-green-900/20 p-5 rounded-xl">
             <div className="flex items-center gap-3 mb-3">
               <Moon className="text-green-600" />
               <h3 className="font-semibold text-green-900 dark:text-white">Appearance</h3>
             </div>
+
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-green-900 dark:text-white">Dark Mode</p>
                 <p className="text-sm text-green-700 dark:text-green-400">Switch between light and dark theme</p>
               </div>
+
+              {/* Toggle button that calls the global dark mode function */}
               <button
                 onClick={toggleDark}
                 className={`w-14 h-8 flex items-center rounded-full p-1 transition ${dark ? "bg-green-600" : "bg-gray-300"}`}

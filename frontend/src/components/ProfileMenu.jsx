@@ -13,6 +13,7 @@ export default function ProfileMenu() {
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
+  // Do not render anything if no user is logged in
   if (!user) return null;
 
   const name = user.user_metadata?.name ?? "";
@@ -20,29 +21,35 @@ export default function ProfileMenu() {
 
   return (
     <div className="relative flex items-center gap-2">
-  {/* Name next to avatar */}
-  <span className="text-lg font-semibold text-green-800 dark:text-green-300 hidden sm:block">
-    {user.user_metadata?.username || user.user_metadata?.name || ""}
-  </span>
 
-  {/* Avatar button */}
-  <button
-    onClick={() => setOpen(!open)}
-    className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-400 shadow-md hover:scale-105 transition-transform">
-    {avatarUrl ? (
-      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />): 
-      (<div className="w-full h-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold text-lg">
-        {name?.[0]?.toUpperCase() ?? "?"}
-      </div>
-    )}
-  </button>
+      {/* Display username or full name next to the avatar */}
+      <span className="text-lg font-bold text-green-800 dark:text-green-300 hidden sm:block">
+        {user.user_metadata?.username || user.user_metadata?.name || ""}
+      </span>
 
-      {/* Dropdown — opens LEFT so it never goes off screen */}
+      {/* Avatar button that opens the dropdown */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-400 shadow-md hover:scale-105 transition-transform"
+      >
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold text-lg">
+            {name?.[0]?.toUpperCase() ?? "?"}
+          </div>
+        )}
+      </button>
+
       {open && (
         <>
+          {/* Invisible backdrop to close dropdown on outside click */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+
+          {/* Dropdown menu */}
           <div className="fixed top-16 right-6 w-56 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-green-100 dark:border-green-900 rounded-2xl shadow-2xl p-4 z-50">
 
+            {/* User info section at top of dropdown */}
             <div className="pb-3 border-b border-green-100 dark:border-gray-700 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
                 {avatarUrl ? (
@@ -59,6 +66,7 @@ export default function ProfileMenu() {
               </div>
             </div>
 
+            {/* Navigation menu items */}
             <div className="py-2 space-y-1">
               <MenuItem
                 icon={User}
@@ -70,9 +78,9 @@ export default function ProfileMenu() {
                 label="Settings"
                 onClick={() => { setShowSettings(true); setOpen(false); }}
               />
-              
             </div>
 
+            {/* Logout button */}
             <div className="pt-3 border-t border-green-100 dark:border-gray-700">
               <button
                 onClick={() => { logout(); navigate("/login"); }}
@@ -86,7 +94,7 @@ export default function ProfileMenu() {
         </>
       )}
 
-      {/* ✅ Modals rendered via portal so they always appear on top of everything */}
+      {/* Modals rendered via portal so they always appear above everything */}
       {showProfile && ReactDOM.createPortal(
         <ProfileModal user={user} onClose={() => setShowProfile(false)} />,
         document.body
@@ -99,6 +107,7 @@ export default function ProfileMenu() {
   );
 }
 
+// Reusable menu item button used in the dropdown
 function MenuItem({ icon: Icon, label, onClick }) {
   return (
     <button

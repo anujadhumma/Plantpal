@@ -5,6 +5,8 @@ import { useLocation } from "react-router-dom";
 
 export default function AIChatbox() {
   const [open, setOpen] = useState(false);
+
+  // Initial greeting message from the AI
   const [messages, setMessages] = useState([
     { role: "ai", text: "Hi! 🌱 I'm your PlantPal assistant. Ask me anything about your plants!" },
   ]);
@@ -12,27 +14,34 @@ export default function AIChatbox() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
 
-  // Hide on login and signup pages
+  // Hide chatbox on login and signup pages
   if (location.pathname === "/login" || location.pathname === "/signup") {
     return null;
   }
 
   const sendMessage = async () => {
+    // Prevent sending empty messages or while loading
     if (!input.trim() || loading) return;
 
     const currentInput = input;
     const userMessage = { role: "user", text: currentInput };
 
+    // Add user message to chat and clear input
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
+      // Send message to backend API
       const response = await chatAPI.sendMessage(currentInput);
       const aiReply = response.data.reply || "I got your message, but no reply came back.";
+
+      // Add AI reply to chat
       setMessages((prev) => [...prev, { role: "ai", text: aiReply }]);
     } catch (error) {
       console.error("Chat error:", error);
+
+      // Show error message if request fails
       setMessages((prev) => [
         ...prev,
         { role: "ai", text: "Sorry, something went wrong connecting to the server." },
@@ -44,7 +53,7 @@ export default function AIChatbox() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button to open and close the chatbox */}
       <button
         onClick={() => setOpen(!open)}
         className="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg z-50 transition-all hover:scale-105"
@@ -56,7 +65,7 @@ export default function AIChatbox() {
       {open && (
         <div className="fixed bottom-24 right-6 w-80 h-[480px] bg-[#f4faf6] dark:bg-[#0d1f12] dark:text-white rounded-3xl shadow-2xl flex flex-col overflow-hidden z-50 border border-green-100 dark:border-green-900">
 
-          {/* Header */}
+          {/* Chat header with icon and status */}
           <div className="bg-green-600 text-white p-4 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">
               🌿
@@ -67,10 +76,10 @@ export default function AIChatbox() {
             </div>
           </div>
 
-          {/* Golden divider */}
+          {/* Decorative divider */}
           <div className="h-0.5 w-full bg-gradient-to-r from-yellow-300 via-green-400 to-yellow-300" />
 
-          {/* Messages */}
+          {/* Scrollable message list */}
           <div className="flex-1 p-3 overflow-y-auto space-y-2 bg-[#f4faf6] dark:bg-[#0d1f12]">
             {messages.map((msg, i) => (
               <div
@@ -85,6 +94,7 @@ export default function AIChatbox() {
               </div>
             ))}
 
+            {/* Typing indicator shown while waiting for AI response */}
             {loading && (
               <div className="p-3 rounded-2xl text-sm max-w-[80%] bg-white dark:bg-white/10 border border-green-100 dark:border-green-900 shadow-sm flex gap-1 items-center">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -94,7 +104,7 @@ export default function AIChatbox() {
             )}
           </div>
 
-          {/* Input */}
+          {/* Input area for typing and sending messages */}
           <div className="p-3 border-t border-green-100 dark:border-green-900 bg-white dark:bg-[#0d1f12] flex gap-2 items-center">
             <input
               className="flex-1 border border-green-200 dark:border-green-800 rounded-xl p-2 text-sm bg-green-50 dark:bg-green-900/20 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-300"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
+// Small card component to display a single sensor metric
 const MetricCard = ({ icon, label, value, unit }) => (
   <div className="flex flex-col gap-1 bg-pink-100 dark:bg-[#1e0f18] rounded-xl px-4 py-3 flex-1">
     <span className="text-lg">{icon}</span>
@@ -18,7 +19,7 @@ const PlantSensorWidget = () => {
   const [reading, setReading]       = useState(null);
   const [loading, setLoading]       = useState(false);
 
-  // Fetch all plants for dropdown
+  // Fetch all plants from the database on mount
   useEffect(() => {
     supabase
       .from("Plant")
@@ -32,10 +33,12 @@ const PlantSensorWidget = () => {
       });
   }, []);
 
-  // Fetch latest reading when selected plant changes
+  // Fetch the latest sensor reading when selected plant changes
   useEffect(() => {
     if (!selectedId) return;
     const plant = plants.find((p) => String(p.id) === selectedId);
+
+    // Skip fetch if plant has no linked device
     if (!plant?.device_id) { setReading(null); return; }
 
     setLoading(true);
@@ -55,7 +58,8 @@ const PlantSensorWidget = () => {
 
   return (
     <div className="bg-white dark:bg-[#1a0d15] border border-pink-100 dark:border-pink-900/30 rounded-2xl p-5 shadow-sm">
-      {/* Header + Dropdown */}
+
+      {/* Header with plant selector dropdown */}
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <div>
           <p className="text-xs font-mono tracking-widest text-pink-400 dark:text-pink-300 uppercase mb-0.5">Live Sensor</p>
@@ -73,28 +77,28 @@ const PlantSensorWidget = () => {
         </select>
       </div>
 
-      {/* Loading */}
+      {/* Loading spinner while fetching data */}
       {loading && (
         <div className="flex justify-center py-6">
           <div className="w-6 h-6 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin" />
         </div>
       )}
 
-      {/* No device linked */}
+      {/* Message when plant has no linked device */}
       {!loading && selectedPlant && !selectedPlant.device_id && (
         <p className="text-sm text-gray-400 dark:text-gray-500 bg-pink-50 dark:bg-pink-900/10 rounded-xl px-4 py-3">
           No device linked to this plant yet.
         </p>
       )}
 
-      {/* No readings yet */}
+      {/* Message when device is linked but no readings exist yet */}
       {!loading && selectedPlant?.device_id && !reading && (
         <p className="text-sm text-gray-400 dark:text-gray-500 bg-pink-50 dark:bg-pink-900/10 rounded-xl px-4 py-3">
           📡 Waiting for sensor data from <span className="font-mono">{selectedPlant.device_id}</span>
         </p>
       )}
 
-      {/* Live reading */}
+      {/* Sensor metric cards shown when reading data is available */}
       {!loading && reading && (
         <>
           <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mb-3">
@@ -102,9 +106,9 @@ const PlantSensorWidget = () => {
           </p>
           <div className="flex gap-2 flex-wrap">
             <MetricCard icon="🌡️" label="Temp"     value={reading.temperature_c}          unit="°C"  />
-            <MetricCard icon="💧" label="Humidity" value={reading.humidity_percent}      unit="%"   />
-            <MetricCard icon="🌱" label="Soil"     value={reading.soil_moisture_percent} unit="%"   />
-            <MetricCard icon="☀️" label="Light"    value={reading.light_lux}             unit="lux" />
+            <MetricCard icon="💧" label="Humidity" value={reading.humidity_percent}        unit="%"   />
+            <MetricCard icon="🌱" label="Soil"     value={reading.soil_moisture_percent}   unit="%"   />
+            <MetricCard icon="☀️" label="Light"    value={reading.light_lux}               unit="lux" />
           </div>
         </>
       )}

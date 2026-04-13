@@ -5,24 +5,26 @@ import { supabase } from "../supabaseClient";
 export default function ProfileModal({ user, onClose }) {
   if (!user) return null;
 
-  const [name, setName] = useState(user.user_metadata?.name ?? "");
-  const [email, setEmail] = useState(user.email ?? "");
-  const [username, setUsername] = useState(user.user_metadata?.username ?? "");
-  const [location, setLocation] = useState(user.user_metadata?.location ?? "");
-  const [newPassword, setNewPassword] = useState("");
+  const [name, setName]                   = useState(user.user_metadata?.name ?? "");
+  const [email, setEmail]                 = useState(user.email ?? "");
+  const [username, setUsername]           = useState(user.user_metadata?.username ?? "");
+  const [location, setLocation]           = useState(user.user_metadata?.location ?? "");
+  const [newPassword, setNewPassword]     = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [msg, setMsg] = useState("");
-  const [msgType, setMsgType] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(user.user_metadata?.avatar_url ?? null);
-  const fileInputRef = useRef(null);
+  const [msg, setMsg]                     = useState("");
+  const [msgType, setMsgType]             = useState("");
+  const [loading, setLoading]             = useState(false);
+  const [avatarUrl, setAvatarUrl]         = useState(user.user_metadata?.avatar_url ?? null);
+  const fileInputRef                      = useRef(null);
 
+  // Show a timed status message after save or error
   const showMsg = (text, type) => {
     setMsg(text);
     setMsgType(type);
     setTimeout(() => setMsg(""), 4000);
   };
 
+  // Handle profile picture upload to Supabase storage
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -36,6 +38,7 @@ export default function ProfileModal({ user, onClose }) {
     const fileExt = file.name.split(".").pop();
     const filePath = `${user.id}.${fileExt}`;
 
+    // Upload image to the avatars storage bucket
     const { error: uploadError } = await supabase.storage
       .from("avatars")
       .upload(filePath, file, { upsert: true });
@@ -46,9 +49,11 @@ export default function ProfileModal({ user, onClose }) {
       return;
     }
 
+    // Get the public URL of the uploaded image
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
     const publicUrl = data.publicUrl;
 
+    // Save the avatar URL to auth metadata and profiles table
     await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
     await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
 
@@ -57,6 +62,7 @@ export default function ProfileModal({ user, onClose }) {
     setLoading(false);
   };
 
+  // Save name, email, username and location to Supabase
   const handleSaveProfile = async () => {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({
@@ -67,6 +73,7 @@ export default function ProfileModal({ user, onClose }) {
     if (error) {
       showMsg(error.message, "error");
     } else {
+      // Also update the profiles table with the new values
       await supabase
         .from("profiles")
         .update({ name, email, username, location })
@@ -76,6 +83,7 @@ export default function ProfileModal({ user, onClose }) {
     setLoading(false);
   };
 
+  // Update the user password after validation
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
       showMsg("Password must be at least 6 characters.", "error");
@@ -104,7 +112,7 @@ export default function ProfileModal({ user, onClose }) {
           <X />
         </button>
 
-        {/* Avatar */}
+        {/* Avatar section with upload button */}
         <div className="flex flex-col items-center space-y-3">
           <div className="relative">
             {avatarUrl ? (
@@ -114,6 +122,8 @@ export default function ProfileModal({ user, onClose }) {
                 {name?.[0]?.toUpperCase() ?? "?"}
               </div>
             )}
+
+            {/* Camera button triggers the hidden file input */}
             <button
               onClick={() => fileInputRef.current.click()}
               className="absolute bottom-0 right-0 bg-green-600 hover:bg-green-700 text-white p-2 rounded-full shadow transition"
@@ -121,6 +131,8 @@ export default function ProfileModal({ user, onClose }) {
             >
               <Camera size={16} />
             </button>
+
+            {/* Hidden file input for image selection */}
             <input
               ref={fileInputRef}
               type="file"
@@ -133,7 +145,7 @@ export default function ProfileModal({ user, onClose }) {
           <p className="text-green-700 dark:text-gray-400">{email}</p>
         </div>
 
-        {/* Message */}
+        {/* Status message shown after save or error */}
         {msg && (
           <div className={`mt-4 text-sm text-center p-2 rounded-lg ${
             msgType === "success"
@@ -144,7 +156,6 @@ export default function ProfileModal({ user, onClose }) {
           </div>
         )}
 
-        {/* Profile Fields */}
         <div className="mt-6 space-y-4">
           <p className="text-sm font-semibold text-green-800 dark:text-green-300 border-b border-green-200 dark:border-green-800 pb-1">
             Profile Info
@@ -189,6 +200,7 @@ export default function ProfileModal({ user, onClose }) {
             />
           </div>
 
+          {/* Save profile button */}
           <button
             onClick={handleSaveProfile}
             disabled={loading}
@@ -223,6 +235,7 @@ export default function ProfileModal({ user, onClose }) {
             />
           </div>
 
+          {/* Change password button */}
           <button
             onClick={handleChangePassword}
             disabled={loading}

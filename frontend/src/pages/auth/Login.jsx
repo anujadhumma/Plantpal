@@ -6,11 +6,11 @@ import bgImage from "../../assets/plant bg.jpeg";
 
 export default function Login() {
   const [emailOrUsername, setEmailOrUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const [password, setPassword]               = useState("");
+  const [error, setError]                     = useState("");
+  const [loading, setLoading]                 = useState(false);
+  const navigate                              = useNavigate();
+  const { setUser }                           = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,6 +19,7 @@ export default function Login() {
 
     let emailToUse = emailOrUsername;
 
+    // If input is not an email, look up the email by username
     if (!emailOrUsername.includes("@")) {
       const { data, error: lookupError } = await supabase
         .from("profiles")
@@ -34,6 +35,7 @@ export default function Login() {
       emailToUse = data.email;
     }
 
+    // Sign in with email and password
     const { data, error } = await supabase.auth.signInWithPassword({
       email: emailToUse,
       password,
@@ -45,6 +47,7 @@ export default function Login() {
       return;
     }
 
+    // Store user in context and redirect to home
     setUser(data.user);
     navigate("/");
   };
@@ -57,7 +60,8 @@ export default function Login() {
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
 
       <div className="relative z-10 w-[420px]">
-        {/* Logo area */}
+
+        {/* Logo and app name */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 border-2 border-green-300 shadow-lg mb-3">
             <span className="text-3xl">🌿</span>
@@ -72,6 +76,7 @@ export default function Login() {
         >
           <h2 className="text-xl font-semibold text-center text-green-900">Welcome!</h2>
 
+          {/* Error message shown on failed login */}
           {error && (
             <p className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-xl">
               {error}
