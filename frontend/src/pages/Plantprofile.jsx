@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 
 // Small card to display a single sensor metric value
 const MetricCard = ({ icon, label, value, unit }) => (
-  <div className="flex flex-col gap-1 bg-[#f0faf0] rounded-xl px-4 py-3 flex-1 min-w-[75px]">
+  <div className="flex flex-col gap-1 bg-[#f0faf0] dark:bg-green-900/20 rounded-xl px-4 py-3 flex-1 min-w-[75px]">
     <span className="text-lg">{icon}</span>
     <span className="text-[10px] font-mono tracking-widest text-green-600 uppercase">{label}</span>
     <span className="text-base font-bold text-green-900">
@@ -39,7 +39,7 @@ const PlantCard = ({ plant, reading, onDelete }) => {
   };
 
   return (
-    <div className="bg-white border border-green-100 rounded-3xl p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+    <div className="bg-white dark:bg-[#0d1f12] border border-green-100 dark:border-green-900 rounded-3xl p-8 w-full max-w-md shadow-2xl">
 
       {/* Plant name, type badge and delete button */}
       <div className="flex items-start justify-between mb-4">
@@ -150,13 +150,33 @@ const AddPlantModal = ({ onClose, onAdd }) => {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1.5 block">Plant Type</label>
-            <select className={inputCls} value={form.plantType} onChange={set("plantType")}>
-              {["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other"].map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
+  <label className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1.5 block">Plant Type</label>
+  <select
+    className={inputCls}
+    value={["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other"].includes(form.plantType) ? form.plantType : "Custom"}
+    onChange={(e) => {
+      if (e.target.value === "Custom") {
+        setForm({ ...form, plantType: "" });
+      } else {
+        setForm({ ...form, plantType: e.target.value });
+      }
+    }}
+  >
+    {["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other","Custom"].map(t => (
+      <option key={t} value={t}>{t}</option>
+    ))}
+  </select>
+
+  {/* Show text input when Custom is selected */}
+  {!["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other"].includes(form.plantType) && (
+    <input
+      className={inputCls + " mt-2"}
+      placeholder="Enter your plant type e.g. Bonsai, Rose, Aloe..."
+      value={form.plantType}
+      onChange={(e) => setForm({ ...form, plantType: e.target.value })}
+    />
+  )}
+</div>
 
           <div>
             <label className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1.5 block">Device ID</label>
@@ -249,7 +269,7 @@ const PlantProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#e8f5e2] px-6 py-10 transition-colors">
+    <div className="min-h-screen bg-[#e8f5e2] dark:bg-[#0d1f12] px-6 py-10 transition-colors">
       <div className="max-w-5xl mx-auto">
 
         {/* Page header with plant count and add button */}
@@ -286,10 +306,10 @@ const PlantProfile = () => {
         {/* Empty state when user has no plants */}
         {!loading && plants.length === 0 && !error && (
           <div className="text-center py-24">
-            <div className="bg-white rounded-3xl p-12 shadow-sm border border-green-100 inline-block">
+            <div className="bg-white dark:bg-[#0d1f12] rounded-3xl p-12 shadow-sm border border-green-100 dark:border-green-900 inline-block">
               <div className="text-6xl mb-4">🪴</div>
-              <h3 className="text-xl font-bold text-green-900 mb-2">No plants yet</h3>
-              <p className="text-green-400 mb-6 text-sm">Add your first plant to start tracking sensor data</p>
+              <h3 className="text-xl font-bold text-green-900 dark:text-white mb-2">No plants yet</h3>
+<p className="text-green-400 dark:text-green-500 mb-6 text-sm">Add your first plant to start tracking sensor data</p>
               <button
                 onClick={() => setShowModal(true)}
                 className="bg-green-600 hover:bg-green-700 text-white rounded-2xl px-6 py-2.5 text-sm font-semibold transition-colors"
