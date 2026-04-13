@@ -7,7 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AIChatbox from "./components/AIChatbox";
 import PlantProfile from "./pages/Plantprofile";
 
-// Placeholder pages for future development
+// Placeholder page
 function Plants() {
   return <h1>Plants 🌿</h1>;
 }

@@ -17,7 +17,7 @@ export const sensorAPI = {
 };
 
 export const chatAPI = {
-  sendMessage: (message) => API.post("/chat", { message }),
+  sendMessage: (payload) => API.post("/chat", payload),
 };
 
 export default API;
