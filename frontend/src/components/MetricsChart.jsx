@@ -9,6 +9,8 @@ import {
   Legend,
 } from "recharts";
 
+const TZ = "America/New_York";
+
 export default function MetricsChart({ data, title, lines = [] }) {
 
   const now = Date.now();
@@ -25,29 +27,30 @@ export default function MetricsChart({ data, title, lines = [] }) {
 
   const ticks = generateTicks();
 
-  // Format tick labels as MM/DD/YY H:MM AM/PM
+  // Format tick labels in Eastern Time 
   const formatTick = (value) => {
-    const d = new Date(value);
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day   = String(d.getDate()).padStart(2, "0");
-    const year  = String(d.getFullYear()).slice(2);
-    let hours   = d.getHours();
-    const ampm  = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12 || 12;
-    return `${month}/${day}/${year} ${hours}:00 ${ampm}`;
+    return new Date(value).toLocaleString("en-US", {
+      timeZone:    TZ,
+      month:       "2-digit",
+      day:         "2-digit",
+      year:        "2-digit",
+      hour:        "numeric",
+      minute:      "2-digit",
+      hour12:      true,
+    });
   };
 
-  // Format tooltip label with full date and time
+  // Format tooltip label in Eastern Time
   const formatTooltip = (value) => {
-    const d = new Date(value);
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day   = String(d.getDate()).padStart(2, "0");
-    const year  = String(d.getFullYear()).slice(2);
-    let hours   = d.getHours();
-    const mins  = String(d.getMinutes()).padStart(2, "0");
-    const ampm  = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12 || 12;
-    return `${month}/${day}/${year} - ${hours}:${mins} ${ampm}`;
+    return new Date(value).toLocaleString("en-US", {
+      timeZone:    TZ,
+      month:       "2-digit",
+      day:         "2-digit",
+      year:        "2-digit",
+      hour:        "numeric",
+      minute:      "2-digit",
+      hour12:      true,
+    });
   };
 
   // Convert created_at to numeric timestamp for proper x-axis scaling

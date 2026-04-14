@@ -5,6 +5,25 @@ import MetricsChart from "../components/MetricsChart";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 
+// Fallback defaults when optimal columns are null (General / Other plant types)
+const DEFAULTS = {
+  optimalMoisture:    30,
+  optimalLight:       12500,
+  optimalTemperature: 21,
+  optimalHumidity:    50,
+  optimalPressure:    1000,
+};
+
+const TOLERANCE = {
+  moisture:    10,
+  light:       7500,
+  temperature: 3,
+  humidity:    10,
+  pressure:    50,
+};
+
+const resolve = (val, def) => (val != null && !isNaN(val)) ? val : def;
+
 export default function Dashboard() {
   const { user } = useAuth();
   const username = user?.user_metadata?.username || user?.user_metadata?.name || "there";
@@ -15,11 +34,11 @@ export default function Dashboard() {
   const [history, setHistory]       = useState([]);
   const [loading, setLoading]       = useState(true);
 
-  // Fetch all plants belonging to the logged in user
+  // Fetch all plants belonging to the logged in user — include optimal columns
   useEffect(() => {
     supabase
       .from("Plant")
-      .select("id, plantName, device_id")
+      .select("id, plantName, device_id, optimalMoisture, optimalLight, optimalTemperature, optimalHumidity, optimalPressure")
       .eq("userId", user.id)
       .order("id")
       .then(({ data }) => {
@@ -70,30 +89,30 @@ export default function Dashboard() {
           );
 
           // Group into 1 hr buckets and average all readings in each bucket
-const buckets = new Map();
-sorted.forEach((r) => {
-  const ts = new Date(r.created_at).getTime();
-  const bucketKey = Math.floor(ts / (60 * 60 * 1000));
-  if (!buckets.has(bucketKey)) {
-    buckets.set(bucketKey, { readings: [], bucketStart: bucketKey * 60 * 60 * 1000 });
-  }
-  buckets.get(bucketKey).readings.push(r);
-});
+          const buckets = new Map();
+          sorted.forEach((r) => {
+            const ts = new Date(r.created_at).getTime();
+            const bucketKey = Math.floor(ts / (60 * 60 * 1000));
+            if (!buckets.has(bucketKey)) {
+              buckets.set(bucketKey, { readings: [], bucketStart: bucketKey * 60 * 60 * 1000 });
+            }
+            buckets.get(bucketKey).readings.push(r);
+          });
 
-const avg = (arr, key) => {
-  const vals = arr.map((r) => r[key]).filter((v) => v != null);
-  if (!vals.length) return null;
-  return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
-};
+          const avg = (arr, key) => {
+            const vals = arr.map((r) => r[key]).filter((v) => v != null);
+            if (!vals.length) return null;
+            return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
+          };
 
-const chartData = Array.from(buckets.values()).map(({ readings, bucketStart }) => ({
-  time:        new Date(bucketStart).toISOString(),
-  created_at:  new Date(bucketStart).toISOString(),
-  temperature: avg(readings, "temperature_c"),
-  humidity:    avg(readings, "humidity_percent"),
-  light:       avg(readings, "light_lux"),
-  moisture:    avg(readings, "soil_moisture_percent"),
-}));
+          const chartData = Array.from(buckets.values()).map(({ readings, bucketStart }) => ({
+            time:        new Date(bucketStart).toISOString(),
+            created_at:  new Date(bucketStart).toISOString(),
+            temperature: avg(readings, "temperature_c"),
+            humidity:    avg(readings, "humidity_percent"),
+            light:       avg(readings, "light_lux"),
+            moisture:    avg(readings, "soil_moisture_percent"),
+          }));
 
           setHistory(chartData);
         } else {
@@ -104,37 +123,44 @@ const chartData = Array.from(buckets.values()).map(({ readings, bucketStart }) =
       });
   }, [selectedId, plants]);
 
-  // Check plant health against fixed optimal thresholds
-  const getPlantStatus = (reading) => {
-    if (!reading) return null;
+  // Check plant health using optimal thresholds from DB (falls back to defaults)
+  const getPlantStatus = (reading, plant) => {
+    if (!reading || !plant) return null;
     const alerts = [];
 
-    // Soil moisture healthy range 20 to 40 percent
-    if (reading.soil_moisture_percent < 20) {
+    const optMoisture    = resolve(plant.optimalMoisture,    DEFAULTS.optimalMoisture);
+    const optLight       = resolve(plant.optimalLight,       DEFAULTS.optimalLight);
+    const optTemperature = resolve(plant.optimalTemperature, DEFAULTS.optimalTemperature);
+    const optHumidity    = resolve(plant.optimalHumidity,    DEFAULTS.optimalHumidity);
+
+    // Soil moisture check
+    const moistureDiff = reading.soil_moisture_percent - optMoisture;
+    if (moistureDiff < -TOLERANCE.moisture) {
       alerts.push("💧 Soil is too dry — water your plant!");
-    } else if (reading.soil_moisture_percent > 40) {
+    } else if (moistureDiff > TOLERANCE.moisture) {
       alerts.push("🚫 Soil is too wet — do NOT water your plant.");
     }
 
-    // Light healthy range 5000 to 20000 lux
-    if (reading.light_lux < 5000) {
+    // Light check
+    const lightDiff = reading.light_lux - optLight;
+    if (lightDiff < -TOLERANCE.light) {
       alerts.push("🌥️ Not enough light.");
-    } else if (reading.light_lux > 20000) {
+    } else if (lightDiff > TOLERANCE.light) {
       alerts.push("🔥 Too much light exposure.");
     }
 
-    // Humidity healthy range 40 to 60 percent
-    if (reading.humidity_percent < 40) {
+    // Humidity check
+    const humidityDiff = reading.humidity_percent - optHumidity;
+    if (humidityDiff < -TOLERANCE.humidity) {
       alerts.push("💨 Humidity too low.");
-    } else if (reading.humidity_percent > 60) {
+    } else if (humidityDiff > TOLERANCE.humidity) {
       alerts.push("💦 Humidity too high.");
     }
 
-    // Temperature healthy range 18 to 24 degrees C
-    if (reading.temperature_c < 18) {
-      alerts.push("🥶 Temperature too low.");
-    } else if (reading.temperature_c > 24) {
-      alerts.push("🥵 Temperature too high.");
+    // Temperature check
+    const tempDiff = reading.temperature_c - optTemperature;
+    if (Math.abs(tempDiff) > TOLERANCE.temperature) {
+      alerts.push(tempDiff > 0 ? "🥵 Temperature too high." : "🥶 Temperature too low.");
     }
 
     return alerts;
@@ -150,7 +176,7 @@ const chartData = Array.from(buckets.values()).map(({ readings, bucketStart }) =
   const selectedPlant      = plants.find((p) => String(p.id) === selectedId);
   const hasNoPlants        = !loading && plants.length === 0;
   const hasNoReadings      = !loading && plants.length > 0 && !latest;
-  const alerts             = getPlantStatus(latest);
+  const alerts             = getPlantStatus(latest, selectedPlant);
   const isHealthy          = alerts && alerts.length === 0;
   const deviceDisconnected = getDeviceStatus(latest);
 

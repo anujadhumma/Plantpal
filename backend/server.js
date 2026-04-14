@@ -9,6 +9,8 @@ const PORT = process.env.BACKEND_PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+const optimalRoute = require("./routes/optimalConditions");
+app.use("/api", optimalRoute);
 // Chat endpoint that forwards messages to OpenRouter AI
 app.post("/chat", async (req, res) => {
   try {

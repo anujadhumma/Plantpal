@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
 // Small card to display a single sensor metric value
 const MetricCard = ({ icon, label, value, unit }) => (
   <div className="flex flex-col gap-1 bg-[#f0faf0] dark:bg-green-900/20 rounded-xl px-4 py-3 flex-1 min-w-[75px]">
@@ -18,7 +20,6 @@ const MetricCard = ({ icon, label, value, unit }) => (
 const PlantCard = ({ plant, reading, onDelete }) => {
   const [deleting, setDeleting] = useState(false);
 
-  // Color mapping for each plant type badge
   const typeColors = {
     General:   "bg-green-100  text-green-700",
     Succulent: "bg-lime-100   text-lime-700",
@@ -29,7 +30,7 @@ const PlantCard = ({ plant, reading, onDelete }) => {
     Orchid:    "bg-pink-100   text-pink-600",
     Other:     "bg-gray-100   text-gray-600",
   };
-  const badge = typeColors[plant.plantType] || typeColors.General;
+  const badge = typeColors[plant.plantType] || "bg-green-100 text-green-700";
 
   const handleDelete = async () => {
     if (!confirm(`Remove "${plant.plantName}"?`)) return;
@@ -40,8 +41,6 @@ const PlantCard = ({ plant, reading, onDelete }) => {
 
   return (
     <div className="bg-white dark:bg-[#0d1f12] border border-green-100 dark:border-green-900 rounded-3xl p-8 w-full max-w-md shadow-2xl">
-
-      {/* Plant name, type badge and delete button */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="bg-green-100 rounded-2xl p-2.5">
@@ -63,7 +62,6 @@ const PlantCard = ({ plant, reading, onDelete }) => {
         </button>
       </div>
 
-      {/* Show sensor readings or a waiting message */}
       {reading ? (
         <>
           <p className="text-[10px] font-mono text-green-400 mb-3">
@@ -90,9 +88,10 @@ const PlantCard = ({ plant, reading, onDelete }) => {
 
 // Modal form for adding a new plant
 const AddPlantModal = ({ onClose, onAdd }) => {
-  const [form, setForm]       = useState({ plantName: "", plantType: "General", device_id: "" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [form, setForm]             = useState({ plantName: "", plantType: "General", device_id: "" });
+  const [loading, setLoading]       = useState(false);
+  const [optimalStatus, setOptimalStatus] = useState(""); // shows AI lookup progress to user
+  const [error, setError]           = useState("");
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
@@ -100,12 +99,14 @@ const AddPlantModal = ({ onClose, onAdd }) => {
     if (!form.plantName.trim()) { setError("Plant name is required."); return; }
     setLoading(true);
     setError("");
+    setOptimalStatus("");
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUserId = session?.user?.id;
       if (!currentUserId) { setError("You must be logged in."); return; }
 
-      // Insert the new plant into the database
+      // Step 1 — insert the plant record
       const { data, error: sbError } = await supabase
         .from("Plant")
         .insert([{
@@ -117,8 +118,43 @@ const AddPlantModal = ({ onClose, onAdd }) => {
         .select();
 
       if (sbError) throw sbError;
-      onAdd(data[0]);
+
+      const newPlant = data[0];
+
+      // Step 2 — fetch optimal conditions from backend (OpenRouter or defaults)
+      // Show a friendly status so the user knows something is happening
+      const isGeneric = ["general", "other"].includes(form.plantType.toLowerCase());
+      setOptimalStatus(
+        isGeneric
+          ? "Setting standard care thresholds..."
+          : `Looking up optimal conditions for ${form.plantType}...`
+      );
+
+      try {
+        const optRes = await fetch(`${BACKEND_URL}/api/optimal-conditions`, {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ plantId: newPlant.id, plantType: form.plantType }),
+        });
+
+        if (optRes.ok) {
+          const { optimal } = await optRes.json();
+          // Merge optimal values into the local plant object so the parent
+          // state is immediately up-to-date without a refetch
+          Object.assign(newPlant, optimal);
+        } else {
+          // Non-fatal — alerts will still use defaults inside plantConditions.js
+          console.warn("Optimal conditions lookup failed, using defaults.");
+        }
+      } catch (optErr) {
+        // Network error — non-fatal, continue
+        console.warn("Could not reach optimal-conditions endpoint:", optErr.message);
+      }
+
+      setOptimalStatus("");
+      onAdd(newPlant);
       onClose();
+
     } catch (err) {
       setError(err.message || "Failed to add plant.");
     } finally {
@@ -129,7 +165,6 @@ const AddPlantModal = ({ onClose, onAdd }) => {
   const inputCls = "w-full bg-[#f0faf0] border border-green-200 rounded-2xl px-4 py-2.5 text-sm text-green-900 placeholder-green-300 focus:outline-none focus:ring-2 focus:ring-green-400 transition";
 
   return (
-    // Click outside the modal to close it
     <div
       className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -150,33 +185,39 @@ const AddPlantModal = ({ onClose, onAdd }) => {
           </div>
 
           <div>
-  <label className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1.5 block">Plant Type</label>
-  <select
-    className={inputCls}
-    value={["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other"].includes(form.plantType) ? form.plantType : "Custom"}
-    onChange={(e) => {
-      if (e.target.value === "Custom") {
-        setForm({ ...form, plantType: "" });
-      } else {
-        setForm({ ...form, plantType: e.target.value });
-      }
-    }}
-  >
-    {["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other","Custom"].map(t => (
-      <option key={t} value={t}>{t}</option>
-    ))}
-  </select>
+            <label className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1.5 block">Plant Type</label>
+            <select
+              className={inputCls}
+              value={["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other"].includes(form.plantType) ? form.plantType : "Custom"}
+              onChange={(e) => {
+                if (e.target.value === "Custom") {
+                  setForm({ ...form, plantType: "" });
+                } else {
+                  setForm({ ...form, plantType: e.target.value });
+                }
+              }}
+            >
+              {["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other","Custom"].map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
 
-  {/* Show text input when Custom is selected */}
-  {!["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other"].includes(form.plantType) && (
-    <input
-      className={inputCls + " mt-2"}
-      placeholder="Enter your plant type e.g. Bonsai, Rose, Aloe..."
-      value={form.plantType}
-      onChange={(e) => setForm({ ...form, plantType: e.target.value })}
-    />
-  )}
-</div>
+            {!["General","Succulent","Tropical","Herb","Fern","Cactus","Orchid","Other"].includes(form.plantType) && (
+              <input
+                className={inputCls + " mt-2"}
+                placeholder="Enter your plant type e.g. Bonsai, Rose, Aloe..."
+                value={form.plantType}
+                onChange={(e) => setForm({ ...form, plantType: e.target.value })}
+              />
+            )}
+
+            {/* Hint shown for non-generic types so user knows AI will look it up */}
+            {form.plantType && !["General","Other",""].includes(form.plantType) && (
+              <p className="text-[11px] text-green-400 mt-1.5 ml-1">
+                ✨ Optimal care thresholds will be looked up automatically for this plant type
+              </p>
+            )}
+          </div>
 
           <div>
             <label className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1.5 block">Device ID</label>
@@ -186,7 +227,14 @@ const AddPlantModal = ({ onClose, onAdd }) => {
             </p>
           </div>
 
-          {/* Error message shown if submission fails */}
+          {/* AI lookup status message */}
+          {optimalStatus && (
+            <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 rounded-2xl px-4 py-2.5">
+              <div className="w-3 h-3 border-2 border-green-300 border-t-green-600 rounded-full animate-spin flex-shrink-0" />
+              {optimalStatus}
+            </div>
+          )}
+
           {error && (
             <p className="text-sm text-red-500 bg-red-50 rounded-2xl px-4 py-2.5">{error}</p>
           )}
@@ -215,7 +263,6 @@ const PlantProfile = () => {
 
   useEffect(() => { fetchAll(); }, []);
 
-  // Fetch all plants and their latest sensor readings
   const fetchAll = async () => {
     setLoading(true);
     setError("");
@@ -227,7 +274,6 @@ const PlantProfile = () => {
         .order("id", { ascending: true });
       if (plantErr) throw plantErr;
 
-      // Get unique device IDs to fetch sensor readings
       const deviceIds = plantData.map(p => p.device_id).filter(Boolean);
       let readingMap = {};
 
@@ -239,7 +285,6 @@ const PlantProfile = () => {
           .order("created_at", { ascending: false });
         if (sensorErr) throw sensorErr;
 
-        // Map the most recent reading per device
         sensorData.forEach(r => {
           if (!readingMap[r.device_id]) readingMap[r.device_id] = r;
         });
@@ -254,10 +299,8 @@ const PlantProfile = () => {
     }
   };
 
-  // Add new plant to local state after successful insert
-  const handleAdd = (plant) => setPlants(prev => [...prev, plant]);
+  const handleAdd  = (plant) => setPlants(prev => [...prev, plant]);
 
-  // Delete plant from database and remove from local state
   const handleDelete = async (id) => {
     try {
       const { error } = await supabase.from("Plant").delete().eq("id", id);
@@ -271,8 +314,6 @@ const PlantProfile = () => {
   return (
     <div className="min-h-screen bg-[#e8f5e2] dark:bg-[#0d1f12] px-6 py-10 transition-colors">
       <div className="max-w-5xl mx-auto">
-
-        {/* Page header with plant count and add button */}
         <div className="flex justify-between items-end mb-10">
           <div>
             <p className="text-xs font-semibold tracking-widest text-green-500 uppercase mb-1">PlantPal</p>
@@ -289,27 +330,24 @@ const PlantProfile = () => {
           </button>
         </div>
 
-        {/* Error message if data fetch fails */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-5 py-4 mb-6 text-sm">
             {error}
           </div>
         )}
 
-        {/* Loading spinner while fetching data */}
         {loading && (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-green-200 border-t-green-500 rounded-full animate-spin" />
           </div>
         )}
 
-        {/* Empty state when user has no plants */}
         {!loading && plants.length === 0 && !error && (
           <div className="text-center py-24">
             <div className="bg-white dark:bg-[#0d1f12] rounded-3xl p-12 shadow-sm border border-green-100 dark:border-green-900 inline-block">
               <div className="text-6xl mb-4">🪴</div>
               <h3 className="text-xl font-bold text-green-900 dark:text-white mb-2">No plants yet</h3>
-<p className="text-green-400 dark:text-green-500 mb-6 text-sm">Add your first plant to start tracking sensor data</p>
+              <p className="text-green-400 dark:text-green-500 mb-6 text-sm">Add your first plant to start tracking sensor data</p>
               <button
                 onClick={() => setShowModal(true)}
                 className="bg-green-600 hover:bg-green-700 text-white rounded-2xl px-6 py-2.5 text-sm font-semibold transition-colors"
@@ -320,7 +358,6 @@ const PlantProfile = () => {
           </div>
         )}
 
-        {/* Grid of plant cards */}
         {!loading && plants.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {plants.map((plant) => (
@@ -335,7 +372,6 @@ const PlantProfile = () => {
         )}
       </div>
 
-      {/* Add plant modal */}
       {showModal && <AddPlantModal onClose={() => setShowModal(false)} onAdd={handleAdd} />}
     </div>
   );
