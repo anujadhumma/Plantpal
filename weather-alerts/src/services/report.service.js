@@ -50,7 +50,7 @@ async function sendReportToUser(user) {
 
     await emailService.sendEmail({
       to:      user.email,
-      subject: `🌿 PlantPal Daily Update — ${new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" })}`,
+      subject: `🌿 PlantPal Daily Update - ${new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" })}`,
       body:    emailBody,
     });
 
