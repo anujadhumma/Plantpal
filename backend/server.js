@@ -7,7 +7,7 @@ const PORT = process.env.BACKEND_PORT || 3000;
 
 // Middleware setup
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 const optimalRoute = require("./routes/optimalConditions");
 app.use("/api", optimalRoute);

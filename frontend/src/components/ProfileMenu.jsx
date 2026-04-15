@@ -13,7 +13,6 @@ export default function ProfileMenu() {
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Do not render anything if no user is logged in
   if (!user) return null;
 
   const name = user.user_metadata?.name ?? "";
@@ -21,101 +20,67 @@ export default function ProfileMenu() {
 
   return (
     <div className="relative flex items-center gap-2">
-
-      {/* Display username or full name next to the avatar */}
       <span className="text-lg font-bold text-green-800 dark:text-green-300 hidden sm:block">
         {user.user_metadata?.username || user.user_metadata?.name || ""}
       </span>
 
-      {/* Avatar button that opens the dropdown */}
       <button
         onClick={() => setOpen(!open)}
         className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-400 shadow-md hover:scale-105 transition-transform"
       >
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold text-lg">
-            {name?.[0]?.toUpperCase() ?? "?"}
-          </div>
-        )}
+        {avatarUrl
+          ? <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover"/>
+          : <div className="w-full h-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold text-lg">
+              {name?.[0]?.toUpperCase()??"?"}
+            </div>
+        }
       </button>
 
-      {open && (
+      {/* Dropdown — rendered via portal so it's always on top */}
+      {open && ReactDOM.createPortal(
         <>
-          {/* Invisible backdrop to close dropdown on outside click */}
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-
-          {/* Dropdown menu */}
-          <div className="fixed top-16 right-6 w-56 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-green-100 dark:border-green-900 rounded-2xl shadow-2xl p-4 z-50">
-
-            {/* User info section at top of dropdown */}
+          <div className="fixed inset-0 z-[9998]" onClick={() => setOpen(false)}/>
+          <div className="fixed top-16 right-6 w-56 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-green-100 dark:border-green-900 rounded-2xl shadow-2xl p-4 z-[9999]">
             <div className="pb-3 border-b border-green-100 dark:border-gray-700 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold">
-                    {name?.[0]?.toUpperCase() ?? "?"}
+                {avatarUrl
+                  ?<img src={avatarUrl} alt="Profile" className="w-full h-full object-cover"/>
+                  :<div className="w-full h-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold">
+                    {name?.[0]?.toUpperCase()??"?"}
                   </div>
-                )}
+                }
               </div>
               <div className="min-w-0">
-                <p className="font-semibold text-green-900 dark:text-white text-sm truncate">{name || "PlantPal User"}</p>
+                <p className="font-semibold text-green-900 dark:text-white text-sm truncate">{name||"PlantPal User"}</p>
                 <p className="text-gray-500 dark:text-gray-400 text-xs truncate">{user.email}</p>
               </div>
             </div>
-
-            {/* Navigation menu items */}
             <div className="py-2 space-y-1">
-              <MenuItem
-                icon={User}
-                label="Profile"
-                onClick={() => { setShowProfile(true); setOpen(false); }}
-              />
-              <MenuItem
-                icon={Settings}
-                label="Settings"
-                onClick={() => { setShowSettings(true); setOpen(false); }}
-              />
+              <MenuItem icon={User}     label="Profile"  onClick={()=>{setShowProfile(true); setOpen(false);}}/>
+              <MenuItem icon={Settings} label="Settings" onClick={()=>{setShowSettings(true);setOpen(false);}}/>
             </div>
-
-            {/* Logout button */}
             <div className="pt-3 border-t border-green-100 dark:border-gray-700">
-              <button
-                onClick={() => { logout(); navigate("/login"); }}
-                className="flex items-center gap-2 text-red-500 w-full p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition"
-              >
-                <LogOut size={18} />
-                Log out
+              <button onClick={()=>{logout();navigate("/login");}}
+                className="flex items-center gap-2 text-red-500 w-full p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                <LogOut size={18}/> Log out
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
 
-      {/* Modals rendered via portal so they always appear above everything */}
-      {showProfile && ReactDOM.createPortal(
-        <ProfileModal user={user} onClose={() => setShowProfile(false)} />,
-        document.body
-      )}
-      {showSettings && ReactDOM.createPortal(
-        <SettingsModal onClose={() => setShowSettings(false)} />,
-        document.body
-      )}
+      {showProfile  && ReactDOM.createPortal(<ProfileModal  user={user} onClose={()=>setShowProfile(false)}/>,  document.body)}
+      {showSettings && ReactDOM.createPortal(<SettingsModal            onClose={()=>setShowSettings(false)}/>, document.body)}
     </div>
   );
 }
 
-// Reusable menu item button used in the dropdown
 function MenuItem({ icon: Icon, label, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-2 w-full text-left hover:bg-green-50 dark:hover:bg-green-900/20 text-green-900 dark:text-gray-200 p-2 rounded-xl transition"
-    >
-      <Icon size={18} className="text-green-600 dark:text-green-400" />
-      {label}
+    <button onClick={onClick}
+      className="flex items-center gap-2 w-full text-left hover:bg-green-50 dark:hover:bg-green-900/20 text-green-900 dark:text-gray-200 p-2 rounded-xl transition">
+      <Icon size={18} className="text-green-600 dark:text-green-400"/> {label}
     </button>
   );
 }
