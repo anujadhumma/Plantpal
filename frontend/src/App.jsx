@@ -7,7 +7,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AIChatbox from "./components/AIChatbox";
 import PlantProfile from "./pages/Plantprofile";
 
-// Placeholder page
 function Plants() {
   return <h1>Plants 🌿</h1>;
 }
@@ -21,11 +20,9 @@ export default function App() {
     <div className="min-h-screen bg-[#d4edda] dark:bg-[#0d1f12] text-gray-900 dark:text-gray-100 transition-colors">
       <BrowserRouter>
         <Routes>
-          {/* Public routes accessible without login */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
-          {/* Protected routes require the user to be logged in */}
           <Route
             element={
               <ProtectedRoute>
@@ -39,7 +36,6 @@ export default function App() {
           </Route>
         </Routes>
 
-        {/* AI chatbox available on all protected pages */}
         <AIChatbox />
       </BrowserRouter>
     </div>

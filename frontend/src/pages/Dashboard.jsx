@@ -37,7 +37,6 @@ const METRIC = {
   "Soil Moisture":{ icon:Sprout,      color:"#34d399", opt:"optimalMoisture",    tol:"moisture",    unit:"%"   },
 };
 
-// ─── Metric Card — balanced font sizes ───────────────────────────────────────
 const MetricCard = ({ label, value, delay, plant }) => {
   const m=METRIC[label], Icon=m.icon;
   const opt=resolve(plant?.[m.opt],DEFAULTS[m.opt]);
@@ -53,7 +52,6 @@ const MetricCard = ({ label, value, delay, plant }) => {
       style={{animationDelay:`${delay}ms`,boxShadow:`0 2px 14px ${m.color}14`}}>
       <div className="absolute top-0 left-0 right-0 h-[2px]" style={{background:`linear-gradient(90deg,${m.color},${m.color}44)`}}/>
 
-      {/* Label row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <Icon size={13} style={{color:m.color}} strokeWidth={2.5}/>
@@ -68,7 +66,6 @@ const MetricCard = ({ label, value, delay, plant }) => {
         </div>
       </div>
 
-      {/* Value — same size as mood title for visual balance */}
       <div className="flex items-baseline gap-1 mb-2.5">
         <span className="text-2xl font-black tracking-tight text-gray-900 dark:text-white leading-none">{value??"-"}</span>
         <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500">{m.unit}</span>
@@ -90,7 +87,6 @@ const MetricCard = ({ label, value, delay, plant }) => {
   );
 };
 
-// ─── Health Ring — bigger, text balanced with cards ───────────────────────────
 const HealthRing = ({ score }) => {
   const r=65,sw=10,norm=r-sw/2,circ=2*Math.PI*norm,offset=circ-(score/100)*circ;
   const color=score>=75?"#22c55e":score>=50?"#facc15":score>=25?"#f97316":"#ef4444";
@@ -121,7 +117,6 @@ const HealthRing = ({ score }) => {
   );
 };
 
-// ─── Mood Panel — bigger text, matches card sizes ─────────────────────────────
 const MoodPanel = ({ score, alerts, plantName }) => {
   const mood=
     score===100?{emoji:"🥳",title:"Thriving!",  desc:"Everything is perfect."}:
@@ -137,7 +132,6 @@ const MoodPanel = ({ score, alerts, plantName }) => {
         <div className="flex items-center gap-2 mb-1.5">
           <span className="text-2xl flex-shrink-0">{mood.emoji}</span>
           <div className="min-w-0">
-            {/* Same text-2xl as value numbers for visual balance */}
             <p className="text-base font-black text-gray-900 dark:text-white leading-tight">{mood.title}</p>
             <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{plantName}</p>
           </div>
@@ -158,7 +152,6 @@ const MoodPanel = ({ score, alerts, plantName }) => {
   );
 };
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const {user} = useAuth();
   const username=user?.user_metadata?.username||user?.user_metadata?.name||"there";
@@ -247,10 +240,10 @@ export default function Dashboard() {
         {/* Header */}
         <div className="fade-up flex items-start justify-between flex-shrink-0">
           <div>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-White text-white dark:text-white">
               Hi {username}, welcome!
             </h1>
-            <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+            <p className="text-sm font-bold text-white dark:text-white mt-0.5">
               {noPlants
                 ? "Please add your first plant to get started 🌱"
                 : "Here's how your plants are doing today 🌿"}
@@ -304,7 +297,6 @@ export default function Dashboard() {
         ) : (
           <div className="fade-up flex gap-3 flex-1 min-h-0" style={{animationDelay:"80ms"}}>
 
-            {/* Metric cards — slightly narrower */}
             <div className="flex-[1] grid grid-cols-2 gap-2.5 min-h-0">
               <MetricCard label="Temperature"   value={latest?.temperature_c??0}        delay={80}  plant={sel}/>
               <MetricCard label="Humidity"      value={latest?.humidity_percent??0}      delay={110} plant={sel}/>
@@ -312,7 +304,6 @@ export default function Dashboard() {
               <MetricCard label="Soil Moisture" value={latest?.soil_moisture_percent??0} delay={170} plant={sel}/>
             </div>
 
-            {/* Sidebar: ring + mood side by side — slightly wider */}
             <div className="w-[360px] flex flex-col gap-2.5 flex-shrink-0 min-h-0">
 
               <div className="flex gap-2.5 flex-shrink-0">

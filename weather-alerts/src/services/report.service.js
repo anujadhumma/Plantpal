@@ -1,4 +1,4 @@
-// Report service — sends recurring plant status emails to users with plants
+// Report service - sends recurring plant status emails to users with plants
 const { Pool } = require("pg");
 const emailService = require("./email.service");
 const axios = require("axios");
@@ -126,7 +126,7 @@ async function getWeatherInfo(plant, userLocation) {
   } catch { return null; }
 }
 
-// Plain text email — nicely formatted with emojis and clear sections
+// Plain text email - nicely formatted with emojis and clear sections
 function buildEmailBody(userName, plantReports, weather) {
   const greeting = userName?.trim() || "Plant Parent";
   const date     = new Date().toLocaleDateString("en-US", { weekday:"long", year:"numeric", month:"long", day:"numeric" });

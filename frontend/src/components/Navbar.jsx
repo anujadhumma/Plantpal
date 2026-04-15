@@ -25,7 +25,6 @@ export default function Navbar() {
         </span>
       </div>
 
-      {/* Right side profile menu */}
       <ProfileMenu />
     </nav>
   );

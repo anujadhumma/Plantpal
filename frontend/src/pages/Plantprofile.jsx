@@ -233,7 +233,6 @@ const PlantProfile = () => {
       <div className="w-full px-5 py-6 min-h-[calc(100vh-4rem)]">
         <div className="max-w-6xl mx-auto">
 
-          {/* Header — no PlantPal label, bold plant count */}
           <div className="fade-up flex justify-between items-end mb-8">
             <div>
               <h1 className="text-3xl font-black text-gray-900 dark:text-white">My Plants 🌿</h1>

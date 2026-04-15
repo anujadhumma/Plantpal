@@ -18,7 +18,6 @@ export default function MetricsChart({ data, title, lines = [], height = 170 }) 
   const chartData = (data||[]).map(d=>({...d, timeMs:new Date(d.created_at).getTime()}));
 
   return (
-    /* Same card style as metric cards: bg-white/90 backdrop-blur-md border-green-100 */
     <div
       className="w-full bg-white/90 dark:bg-[#0d1f12]/80 border border-green-100 dark:border-white/10 backdrop-blur-md rounded-xl p-3"
       style={{height:`${height}px`}}

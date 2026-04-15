@@ -235,7 +235,6 @@ export default function ProfileModal({ user, onClose }) {
             />
           </div>
 
-          {/* Change password button */}
           <button
             onClick={handleChangePassword}
             disabled={loading}

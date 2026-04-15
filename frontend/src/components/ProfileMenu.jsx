@@ -36,7 +36,6 @@ export default function ProfileMenu() {
         }
       </button>
 
-      {/* Dropdown — rendered via portal so it's always on top */}
       {open && ReactDOM.createPortal(
         <>
           <div className="fixed inset-0 z-[9998]" onClick={() => setOpen(false)}/>

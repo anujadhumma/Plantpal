@@ -20,10 +20,9 @@ export default function Layout() {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Overlay — light mode: soft white wash, dark mode: deep green tint */}
-      <div className="min-h-screen bg-white/50 dark:bg-[#0a1a0f]/75 backdrop-blur-[1px]">
+      {/* Overlay - light mode: soft white wash, dark mode: deep green tint */}
+      <div className="min-h-screen bg-[#0a1a0f]/50 dark:bg-[#0a1a0f]/75 backdrop-blur-[1px]">
         {!hideNavbar && <Navbar />}
-        {/* Removed max-w and padding — each page controls its own layout */}
         <main className="w-full">
           <Outlet />
         </main>
