@@ -235,10 +235,10 @@ const PlantProfile = () => {
 
           <div className="fade-up flex justify-between items-end mb-8">
             <div>
-              <h1 className="text-3xl font-black text-gray-900 dark:text-white">My Plants 🌿</h1>
+              <h1 className="text-3xl font-black text-white dark:text-white">My Plants 🌿</h1>
               <p className="text-sm mt-1">
-                <span className="font-black text-gray-900 dark:text-white">{plants.length}</span>
-                <span className="text-gray-500 dark:text-gray-400"> {plants.length===1?"plant":"plants"} added</span>
+                <span className="font-black text-white dark:text-white">{plants.length}</span>
+                <span className="text-white dark:text-white"> {plants.length===1?"plant":"plants"} added</span>
               </p>
             </div>
             <button onClick={()=>setShowModal(true)}
