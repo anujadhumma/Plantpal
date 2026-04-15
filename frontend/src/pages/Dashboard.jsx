@@ -275,19 +275,18 @@ export default function Dashboard() {
 
         {/* Plant tabs */}
         {plants.length>0&&(
-          <div className="fade-up flex gap-2 flex-shrink-0 flex-wrap" style={{animationDelay:"40ms"}}>
-            {plants.map(p=>(
-              <button key={p.id} onClick={()=>setSelectedId(String(p.id))}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
-                  String(p.id)===selectedId
-                    ?"bg-green-600 text-white shadow-md shadow-green-300/40"
-                    :`${CARD} text-gray-700 dark:text-gray-300 hover:border-green-400`
-                }`}>
-                🌿 {p.plantName}
-              </button>
-            ))}
-          </div>
-        )}
+  <div className="fade-up flex-shrink-0" style={{animationDelay:"40ms"}}>
+    <select
+      value={selectedId}
+      onChange={e=>setSelectedId(e.target.value)}
+      className={`${CARD} text-gray-700 dark:text-gray-300 text-xs font-bold rounded-full px-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition cursor-pointer`}
+    >
+      {plants.map(p=>(
+        <option key={p.id} value={String(p.id)}>🌿 {p.plantName}</option>
+      ))}
+    </select>
+  </div>
+)}
 
         {/* Main */}
         {noPlants ? (
