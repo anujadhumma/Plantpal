@@ -40,8 +40,13 @@ export default function AIChatbox() {
       return;
     }
     const show = setTimeout(() => setShowBubble(true), 1500);
-    const hide = setTimeout(() => setShowBubble(false), 11500);
-    return () => { clearTimeout(show); clearTimeout(hide); };
+const hide = setTimeout(() => setShowBubble(false), 11500);
+
+const interval = setInterval(() => {
+  setShowBubble(true);
+  setTimeout(() => setShowBubble(false), 10000);
+}, 60000);
+   return () => { clearTimeout(show); clearTimeout(hide); clearInterval(interval); };
   }, [isOnDashboard, open]);
 
   // Load plants when in plant mode
